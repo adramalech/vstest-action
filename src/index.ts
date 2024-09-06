@@ -22,11 +22,8 @@ export async function run() {
     core.debug(`VsTestPath: ${vsTestPath}`);
 
     const output = await exec.getExecOutput(`powershell Test-Path -Path ${vsTestPath}`);
-    const result = output.stdout ?? '';
 
-    core.info(`output result is ${result}`);
-
-    const toolAlreadyUnarchived = result.toUpperCase() == 'TRUE';
+    const toolAlreadyUnarchived = (output.stdout ?? '').toUpperCase().trim() === 'TRUE';
 
     // if the test tools already exist in the target folder do not try to overwrite them.
     if (toolAlreadyUnarchived) {
