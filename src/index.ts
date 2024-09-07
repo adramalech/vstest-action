@@ -7,6 +7,8 @@ import {getArguments} from './getArguments'
 import {getVsTestPath} from './getVsTestPath'
 
 export async function run() {
+  let shouldSkipArtifactUpload: boolean = false;
+
   try {
     const testFiles = await getTestAssemblies();
     if (testFiles.length == 0) {
@@ -20,6 +22,10 @@ export async function run() {
 
     const vsTestPath = getVsTestPath();
     core.debug(`VsTestPath: ${vsTestPath}`);
+
+    // if skip flag is set skip and return before uploading artifact.
+    const shouldSkipArtifactUploadStr = core.getInput('shouldSkipArtifactUpload');
+    shouldSkipArtifactUpload = (shouldSkipArtifactUploadStr ?? '').toUpperCase().trim() === 'TRUE';
 
     let toolAlreadyUnarchived: boolean;
 
@@ -45,14 +51,10 @@ export async function run() {
     core.debug(`Arguments: ${args}`);
 
     core.info(`Running tests...`);
-    await exec.exec(`${vsTestPath} ${testFiles.join(' ')} ${args} /Logger:TRX`);
+    await exec.exec(`${vsTestPath} ${testFiles.join(' ')} ${args}`);
   } catch (err: unknown) {
     core.setFailed(err instanceof Error ? err.message : 'Unknown error type');
   }
-
-  // if skip flag is set skip and return before uploading artifact.
-  const shouldSkipArtifactUploadStr = core.getInput('shouldSkipArtifactUpload');
-  const shouldSkipArtifactUpload = (shouldSkipArtifactUploadStr ?? '').toUpperCase().trim() === 'TRUE';
 
   if (shouldSkipArtifactUpload) {
     core.info(`Skipping uploading artifact...`);
