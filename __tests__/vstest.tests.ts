@@ -310,10 +310,10 @@ describe('vstest Action Unit Tests', () => {
   it('test getInputs with subFolderPath set', async () => {
     // Arrange
     const subFolderPathName = 'testSubFolderPath';
-    const expectedSearchPath = `TestResults${path.sep}${subFolderPathName}`;
+    const expectedSubPath = `TestResults${path.sep}${subFolderPathName}`;
     const coreGetInputMock = jest.spyOn(core, 'getInput');
     const coreSetFailedMock = jest.spyOn(core, 'setFailed');
-    
+
     when(coreGetInputMock)
       .calledWith(Inputs.Name)
       .mockReturnValue('testFile.sln')
@@ -329,12 +329,11 @@ describe('vstest Action Unit Tests', () => {
 
     // Assert
     expect(results).not.toBeNull();
-    expect(results.searchPath).toStrictEqual(expectedSearchPath);
+    expect(results.searchPath).toStrictEqual(expectedSubPath);
   });
 
   it('test getInputs with subFolderPath not set', async () => {
     // Arrange
-    const expectedSearchPath = `TestResults`;
     const coreGetInputMock = jest.spyOn(core, 'getInput');
     const coreSetFailedMock = jest.spyOn(core, 'setFailed');
 
@@ -344,14 +343,16 @@ describe('vstest Action Unit Tests', () => {
       .calledWith(Inputs.IfNoFilesFound)
       .mockReturnValue('warn')
       .calledWith(Inputs.RetentionDays)
-      .mockReturnValue('30');
+      .mockReturnValue('30')
+      .calledWith('resultLogsSubFolderPath')
+      .mockReturnValue('');
 
     // Act
     const results = getInputs();
 
     // Assert
     expect(results).not.toBeNull();
-    expect(results.searchPath).toStrictEqual(expectedSearchPath);
+    expect(results.searchPath).toStrictEqual(`TestResults`);
   });
 
   it('test getInputs with invalid RetentionDays', async () => {
