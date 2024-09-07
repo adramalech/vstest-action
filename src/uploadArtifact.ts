@@ -7,6 +7,7 @@ import {NoFileOptions} from './constants';
 export async function uploadArtifact() {
   try {
     const inputs = getInputs()
+
     const searchResult = await findFilesToUpload(inputs.searchPath)
 
     if (searchResult.filesToUpload.length === 0) {

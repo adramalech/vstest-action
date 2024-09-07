@@ -59,6 +59,12 @@ inputs:
     required: true
     default: "vs-test-result-logs"
 
+  resultLogsSubFolderPath:
+    description: >
+      When multiple runs TestResults have multiple different generated files.
+      This option when populated will add a sub-folder to TestResults to partition multiple artifact uploads.
+    required: false
+
   ifNoFilesFound:
     description: >
       The desired behavior if no files are found using the provided path.
