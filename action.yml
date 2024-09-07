@@ -78,6 +78,17 @@ inputs:
     description: "Skip attempt to upload test result artifact."
     required: false
 
+  shouldSkipGeneratingTestLogFile:
+    description: "Skip generating the test run output log file."
+    required: false
+
+  customTestLogFilename:
+    description: >
+      Label the test run output log file with a custom provided filename, otherwise will use an auto-generated filename. 
+      This will be ignored if shouldSkipGeneratingTestLogfile is set to `true`.
+      Only add filename not file extension this will append .trx as file extension.
+    required: false
+
 runs:
   using: "node20"
   main: "dist/index.js"

@@ -37,59 +37,152 @@ describe('vstest Action Unit Tests', ()=>{
         jest.resetAllMocks
     })
     
-    it("test getArguments with no inputs", async () => {
+    it('test getArguments with no inputs', async () => {
+      jest.mock('@actions/core');
+      jest.spyOn(core, 'debug');
+      jest.spyOn(core, 'info');
+      jest.spyOn(core, 'getInput');
 
-        jest.mock('@actions/core');
-        jest.spyOn(core,'debug');
-        jest.spyOn(core, 'info');
-        jest.spyOn(core, 'getInput');
+      // Arrange
+      const coreGetInputMock = jest.spyOn(core, 'getInput');
+      when(coreGetInputMock)
+        .calledWith('testFiltercriteria')
+        .mockReturnValue('')
+        .calledWith('runSettingsFile')
+        .mockReturnValue('')
+        .calledWith('pathToCustomTestAdapters')
+        .mockReturnValue('')
+        .calledWith('runInParallel')
+        .mockReturnValue('false')
+        .calledWith('runTestsInIsolation')
+        .mockReturnValue('false')
+        .calledWith('codeCoverageEnabled')
+        .mockReturnValue('false')
+        .calledWith('platform')
+        .mockReturnValue('')
+        .calledWith('otherConsoleOptions')
+        .mockReturnValue('');
 
-        // Arrange
-        const coreGetInputMock = jest.spyOn(core, 'getInput');
-        when(coreGetInputMock).calledWith('testFiltercriteria').mockReturnValue('')
-        .calledWith('runSettingsFile').mockReturnValue('')
-        .calledWith('pathToCustomTestAdapters').mockReturnValue('')
-        .calledWith('runInParallel').mockReturnValue('false')
-        .calledWith('runTestsInIsolation').mockReturnValue('false')
-        .calledWith('codeCoverageEnabled').mockReturnValue('false')
-        .calledWith('platform').mockReturnValue('')
-        .calledWith('otherConsoleOptions').mockReturnValue('');
-    
-        // Act
-        const args = getArguments();
-    
-        // Assert
-        expect(args).not.toBeNull();
-        expect(args).toBe('');
-    
+      // Act
+      const args = getArguments();
+
+      // Assert
+      expect(args).not.toBeNull();
+      expect(args).toBe('/Logger:trx');
     });
 
-    it("test getArguments with all expected inputs", async () => {
+    it('test getArguments with all expected inputs', async () => {
+      const expectedResult =
+        '/TestCaseFilter:testFilterCriteria /Settings:runSettingsFile /TestAdapterPath:pathToCustomTestAdapters /Parallel /InIsolation /EnableCodeCoverage /Platform:x64 /Logger:trx otherConsoleOptions';
+      jest.mock('@actions/core');
+      jest.spyOn(core, 'debug');
+      jest.spyOn(core, 'info');
+      jest.spyOn(core, 'getInput');
 
-        const expectedResult = '/TestCaseFilter:testFilterCriteria /Settings:runSettingsFile /TestAdapterPath:pathToCustomTestAdapters /Parallel /InIsolation /EnableCodeCoverage /Platform:x64 otherConsoleOptions '
-        jest.mock('@actions/core');
-        jest.spyOn(core,'debug');
-        jest.spyOn(core, 'info');
-        jest.spyOn(core, 'getInput');
+      // Arrange
+      const coreGetInputMock = jest.spyOn(core, 'getInput');
+      when(coreGetInputMock)
+        .calledWith('testFiltercriteria')
+        .mockReturnValue('testFilterCriteria')
+        .calledWith('runSettingsFile')
+        .mockReturnValue('runSettingsFile')
+        .calledWith('pathToCustomTestAdapters')
+        .mockReturnValue('pathToCustomTestAdapters')
+        .calledWith('runInParallel')
+        .mockReturnValue('true')
+        .calledWith('runTestsInIsolation')
+        .mockReturnValue('true')
+        .calledWith('codeCoverageEnabled')
+        .mockReturnValue('true')
+        .calledWith('platform')
+        .mockReturnValue('x64')
+        .calledWith('otherConsoleOptions')
+        .mockReturnValue('otherConsoleOptions');
 
-        // Arrange
-        const coreGetInputMock = jest.spyOn(core, 'getInput');
-        when(coreGetInputMock).calledWith('testFiltercriteria').mockReturnValue('testFilterCriteria')
-        .calledWith('runSettingsFile').mockReturnValue('runSettingsFile')
-        .calledWith('pathToCustomTestAdapters').mockReturnValue('pathToCustomTestAdapters')
-        .calledWith('runInParallel').mockReturnValue('true')
-        .calledWith('runTestsInIsolation').mockReturnValue('true')
-        .calledWith('codeCoverageEnabled').mockReturnValue('true')
-        .calledWith('platform').mockReturnValue('x64')
-        .calledWith('otherConsoleOptions').mockReturnValue('otherConsoleOptions');
-    
-        // Act
-        const args = getArguments();
-    
-        // Assert
-        expect(args).not.toBeNull();
-        expect(args).toEqual(expectedResult);
-    
+      // Act
+      const args = getArguments();
+
+      // Assert
+      expect(args).not.toBeNull();
+      expect(args).toEqual(expectedResult);
+    });
+
+    it('test getArguments with customTestFile and disable logger inputs', async () => {
+      const expectedResult =
+        '/TestCaseFilter:testFilterCriteria /Settings:runSettingsFile /TestAdapterPath:pathToCustomTestAdapters /Parallel /InIsolation /EnableCodeCoverage /Platform:x64 otherConsoleOptions';
+      jest.mock('@actions/core');
+      jest.spyOn(core, 'debug');
+      jest.spyOn(core, 'info');
+      jest.spyOn(core, 'getInput');
+
+      // Arrange
+      const coreGetInputMock = jest.spyOn(core, 'getInput');
+      when(coreGetInputMock)
+        .calledWith('testFiltercriteria')
+        .mockReturnValue('testFilterCriteria')
+        .calledWith('runSettingsFile')
+        .mockReturnValue('runSettingsFile')
+        .calledWith('pathToCustomTestAdapters')
+        .mockReturnValue('pathToCustomTestAdapters')
+        .calledWith('runInParallel')
+        .mockReturnValue('true')
+        .calledWith('runTestsInIsolation')
+        .mockReturnValue('true')
+        .calledWith('codeCoverageEnabled')
+        .mockReturnValue('true')
+        .calledWith('platform')
+        .mockReturnValue('x64')
+        .calledWith('shouldSkipGeneratingTestLogFile')
+        .mockReturnValue('true')
+        .calledWith('otherConsoleOptions')
+        .mockReturnValue('otherConsoleOptions')
+        .calledWith('customTestLogFilename')
+        .mockReturnValue('test');
+
+      // Act
+      const args = getArguments();
+
+      // Assert
+      expect(args).not.toBeNull();
+      expect(args).toEqual(expectedResult);
+    });
+
+    it('test getArguments with customTestFile inputs', async () => {
+      const expectedResult =
+        '/TestCaseFilter:testFilterCriteria /Settings:runSettingsFile /TestAdapterPath:pathToCustomTestAdapters /Parallel /InIsolation /EnableCodeCoverage /Platform:x64 /Logger:trx;LogFileName=test.trx otherConsoleOptions';
+      jest.mock('@actions/core');
+      jest.spyOn(core, 'debug');
+      jest.spyOn(core, 'info');
+      jest.spyOn(core, 'getInput');
+
+      // Arrange
+      const coreGetInputMock = jest.spyOn(core, 'getInput');
+      when(coreGetInputMock)
+        .calledWith('testFiltercriteria')
+        .mockReturnValue('testFilterCriteria')
+        .calledWith('runSettingsFile')
+        .mockReturnValue('runSettingsFile')
+        .calledWith('pathToCustomTestAdapters')
+        .mockReturnValue('pathToCustomTestAdapters')
+        .calledWith('runInParallel')
+        .mockReturnValue('true')
+        .calledWith('runTestsInIsolation')
+        .mockReturnValue('true')
+        .calledWith('codeCoverageEnabled')
+        .mockReturnValue('true')
+        .calledWith('platform')
+        .mockReturnValue('x64')
+        .calledWith('otherConsoleOptions')
+        .mockReturnValue('otherConsoleOptions')
+        .calledWith('customTestLogFilename')
+        .mockReturnValue('test');
+
+      // Act
+      const args = getArguments();
+
+      // Assert
+      expect(args).not.toBeNull();
+      expect(args).toEqual(expectedResult);
     });
 
     it("test getTestAssemblies with valid searchResults", async () => {
