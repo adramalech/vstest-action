@@ -1,4 +1,5 @@
 import * as core from '@actions/core';
+import * as path from 'path';
 
 export function getArguments(): string {
   let args = '';
@@ -36,6 +37,17 @@ export function getArguments(): string {
   if (platform && (platform === 'x86' || platform === 'x64' || platform === 'ARM')) {
     args += `/Platform:${platform} `;
   }
+
+  // make an optional nested sub-path for the root path of artifact saving.
+  let resultsDir = 'TestResults';
+
+  const subPath = (core.getInput('resultLogsSubFolderPath') ?? '').trim();
+
+  if ((subPath.length ?? 0) > 0) {
+    resultsDir = `${resultsDir}${path.sep}${subPath}`;
+  }
+
+  args += `/ResultsDirectory:${resultsDir} `;
 
   // skip generating the *.trx file, or if not skip also allow passing in a custom filename for the *.trx.
   const skipGeneratingLoggerStr = core.getInput('shouldSkipGeneratingTestLogFile');

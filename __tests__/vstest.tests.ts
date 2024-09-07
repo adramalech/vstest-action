@@ -66,12 +66,12 @@ describe('vstest Action Unit Tests', () => {
 
     // Assert
     expect(args).not.toBeNull();
-    expect(args).toBe('/Logger:trx');
+    expect(args).toBe('/ResultsDirectory:TestResults /Logger:trx');
   });
 
   it('test getArguments with all expected inputs', async () => {
     const expectedResult =
-      '/TestCaseFilter:testFilterCriteria /Settings:runSettingsFile /TestAdapterPath:pathToCustomTestAdapters /Parallel /InIsolation /EnableCodeCoverage /Platform:x64 /Logger:trx otherConsoleOptions';
+      '/TestCaseFilter:testFilterCriteria /Settings:runSettingsFile /TestAdapterPath:pathToCustomTestAdapters /Parallel /InIsolation /EnableCodeCoverage /Platform:x64 /ResultsDirectory:TestResults /Logger:trx otherConsoleOptions';
     jest.mock('@actions/core');
     jest.spyOn(core, 'debug');
     jest.spyOn(core, 'info');
@@ -107,7 +107,7 @@ describe('vstest Action Unit Tests', () => {
 
   it('test getArguments with customTestFile and disable logger inputs', async () => {
     const expectedResult =
-      '/TestCaseFilter:testFilterCriteria /Settings:runSettingsFile /TestAdapterPath:pathToCustomTestAdapters /Parallel /InIsolation /EnableCodeCoverage /Platform:x64 otherConsoleOptions';
+      '/TestCaseFilter:testFilterCriteria /Settings:runSettingsFile /TestAdapterPath:pathToCustomTestAdapters /Parallel /InIsolation /EnableCodeCoverage /Platform:x64 /ResultsDirectory:TestResults otherConsoleOptions';
     jest.mock('@actions/core');
     jest.spyOn(core, 'debug');
     jest.spyOn(core, 'info');
@@ -145,9 +145,8 @@ describe('vstest Action Unit Tests', () => {
     expect(args).toEqual(expectedResult);
   });
 
-  it('test getArguments with customTestFile inputs', async () => {
-    const expectedResult =
-      '/TestCaseFilter:testFilterCriteria /Settings:runSettingsFile /TestAdapterPath:pathToCustomTestAdapters /Parallel /InIsolation /EnableCodeCoverage /Platform:x64 otherConsoleOptions';
+  it('test getArguments with customTestFile and subfolderResults inputs', async () => {
+    const expectedResult = `/TestCaseFilter:testFilterCriteria /Settings:runSettingsFile /TestAdapterPath:pathToCustomTestAdapters /Parallel /InIsolation /EnableCodeCoverage /Platform:x64 /ResultsDirectory:TestResults${path.sep}SubTestPath otherConsoleOptions`;
     jest.mock('@actions/core');
     jest.spyOn(core, 'debug');
     jest.spyOn(core, 'info');
@@ -172,8 +171,10 @@ describe('vstest Action Unit Tests', () => {
       .mockReturnValue('x64')
       .calledWith('otherConsoleOptions')
       .mockReturnValue('otherConsoleOptions')
+      .calledWith('resultLogsSubFolderPath')
+      .mockReturnValue('SubTestPath')
       .calledWith('customTestLogFilename')
-      .mockReturnValue('test');
+      .mockReturnValue('SubTestPath');
 
     // Act
     const args = getArguments();
