@@ -9,528 +9,593 @@ import {getTestAssemblies} from '../src/getTestAssemblies';
 import {getArguments} from '../src/getArguments';
 import {when} from 'jest-when';
 // const fs = require('fs')
+import * as path from 'path';
 
-describe('vstest Action Unit Tests', ()=>{
+describe('vstest Action Unit Tests', () => {
+  beforeEach(async () => {
+    // jest.resetModules();
+    // jest.resetAllMocks();
 
-    beforeEach(async() => {
-        // jest.resetModules();
-        // jest.resetAllMocks();
+    jest.mock('@actions/core');
+    jest.spyOn(core, 'debug');
+    jest.spyOn(core, 'info');
+    jest.spyOn(core, 'getInput');
+    jest.spyOn(core, 'setFailed');
+    jest.spyOn(core, 'warning');
 
-        jest.mock('@actions/core');
-        jest.spyOn(core,'debug');
-        jest.spyOn(core, 'info');
-        jest.spyOn(core, 'getInput');
-        jest.spyOn(core, 'setFailed');
-        jest.spyOn(core, 'warning');
+    jest.mock('@actions/exec');
+    jest.spyOn(exec, 'exec');
+    jest.spyOn(exec, 'getExecOutput');
+    jest.mock('path');
 
-        jest.mock('@actions/exec');
-        jest.spyOn(exec, 'exec');
-        jest.spyOn(exec, 'getExecOutput');
-        jest.mock('path');
+    // jest.mock('../src/uploadArtifact');
+  });
 
+  afterEach(async () => {
+    jest.resetAllMocks;
+  });
 
-        // jest.mock('../src/uploadArtifact');
-        
+  it('test getArguments with no inputs', async () => {
+    jest.mock('@actions/core');
+    jest.spyOn(core, 'debug');
+    jest.spyOn(core, 'info');
+    jest.spyOn(core, 'getInput');
+
+    // Arrange
+    const coreGetInputMock = jest.spyOn(core, 'getInput');
+    when(coreGetInputMock)
+      .calledWith('testFiltercriteria')
+      .mockReturnValue('')
+      .calledWith('runSettingsFile')
+      .mockReturnValue('')
+      .calledWith('pathToCustomTestAdapters')
+      .mockReturnValue('')
+      .calledWith('runInParallel')
+      .mockReturnValue('false')
+      .calledWith('runTestsInIsolation')
+      .mockReturnValue('false')
+      .calledWith('codeCoverageEnabled')
+      .mockReturnValue('false')
+      .calledWith('platform')
+      .mockReturnValue('')
+      .calledWith('otherConsoleOptions')
+      .mockReturnValue('');
+
+    // Act
+    const args = getArguments();
+
+    // Assert
+    expect(args).not.toBeNull();
+    expect(args).toBe('/Logger:trx');
+  });
+
+  it('test getArguments with all expected inputs', async () => {
+    const expectedResult =
+      '/TestCaseFilter:testFilterCriteria /Settings:runSettingsFile /TestAdapterPath:pathToCustomTestAdapters /Parallel /InIsolation /EnableCodeCoverage /Platform:x64 /Logger:trx otherConsoleOptions';
+    jest.mock('@actions/core');
+    jest.spyOn(core, 'debug');
+    jest.spyOn(core, 'info');
+    jest.spyOn(core, 'getInput');
+
+    // Arrange
+    const coreGetInputMock = jest.spyOn(core, 'getInput');
+    when(coreGetInputMock)
+      .calledWith('testFiltercriteria')
+      .mockReturnValue('testFilterCriteria')
+      .calledWith('runSettingsFile')
+      .mockReturnValue('runSettingsFile')
+      .calledWith('pathToCustomTestAdapters')
+      .mockReturnValue('pathToCustomTestAdapters')
+      .calledWith('runInParallel')
+      .mockReturnValue('true')
+      .calledWith('runTestsInIsolation')
+      .mockReturnValue('true')
+      .calledWith('codeCoverageEnabled')
+      .mockReturnValue('true')
+      .calledWith('platform')
+      .mockReturnValue('x64')
+      .calledWith('otherConsoleOptions')
+      .mockReturnValue('otherConsoleOptions');
+
+    // Act
+    const args = getArguments();
+
+    // Assert
+    expect(args).not.toBeNull();
+    expect(args).toEqual(expectedResult);
+  });
+
+  it('test getArguments with customTestFile and disable logger inputs', async () => {
+    const expectedResult =
+      '/TestCaseFilter:testFilterCriteria /Settings:runSettingsFile /TestAdapterPath:pathToCustomTestAdapters /Parallel /InIsolation /EnableCodeCoverage /Platform:x64 otherConsoleOptions';
+    jest.mock('@actions/core');
+    jest.spyOn(core, 'debug');
+    jest.spyOn(core, 'info');
+    jest.spyOn(core, 'getInput');
+
+    // Arrange
+    const coreGetInputMock = jest.spyOn(core, 'getInput');
+    when(coreGetInputMock)
+      .calledWith('testFiltercriteria')
+      .mockReturnValue('testFilterCriteria')
+      .calledWith('runSettingsFile')
+      .mockReturnValue('runSettingsFile')
+      .calledWith('pathToCustomTestAdapters')
+      .mockReturnValue('pathToCustomTestAdapters')
+      .calledWith('runInParallel')
+      .mockReturnValue('true')
+      .calledWith('runTestsInIsolation')
+      .mockReturnValue('true')
+      .calledWith('codeCoverageEnabled')
+      .mockReturnValue('true')
+      .calledWith('platform')
+      .mockReturnValue('x64')
+      .calledWith('shouldSkipGeneratingTestLogFile')
+      .mockReturnValue('true')
+      .calledWith('otherConsoleOptions')
+      .mockReturnValue('otherConsoleOptions')
+      .calledWith('customTestLogFilename')
+      .mockReturnValue('test');
+
+    // Act
+    const args = getArguments();
+
+    // Assert
+    expect(args).not.toBeNull();
+    expect(args).toEqual(expectedResult);
+  });
+
+  it('test getArguments with customTestFile inputs', async () => {
+    const expectedResult =
+      '/TestCaseFilter:testFilterCriteria /Settings:runSettingsFile /TestAdapterPath:pathToCustomTestAdapters /Parallel /InIsolation /EnableCodeCoverage /Platform:x64 otherConsoleOptions';
+    jest.mock('@actions/core');
+    jest.spyOn(core, 'debug');
+    jest.spyOn(core, 'info');
+    jest.spyOn(core, 'getInput');
+
+    // Arrange
+    const coreGetInputMock = jest.spyOn(core, 'getInput');
+    when(coreGetInputMock)
+      .calledWith('testFiltercriteria')
+      .mockReturnValue('testFilterCriteria')
+      .calledWith('runSettingsFile')
+      .mockReturnValue('runSettingsFile')
+      .calledWith('pathToCustomTestAdapters')
+      .mockReturnValue('pathToCustomTestAdapters')
+      .calledWith('runInParallel')
+      .mockReturnValue('true')
+      .calledWith('runTestsInIsolation')
+      .mockReturnValue('true')
+      .calledWith('codeCoverageEnabled')
+      .mockReturnValue('true')
+      .calledWith('platform')
+      .mockReturnValue('x64')
+      .calledWith('otherConsoleOptions')
+      .mockReturnValue('otherConsoleOptions')
+      .calledWith('customTestLogFilename')
+      .mockReturnValue('test');
+
+    // Act
+    const args = getArguments();
+
+    // Assert
+    expect(args).not.toBeNull();
+    expect(args).toEqual(expectedResult);
+  });
+
+  it('test getTestAssemblies with valid searchResults', async () => {
+    // Arrange
+    const coreGetInputMock = jest.spyOn(core, 'getInput');
+
+    when(coreGetInputMock)
+      .calledWith('searchFolder')
+      .mockReturnValue('folderPath\\')
+      .calledWith('testAssembly')
+      .mockReturnValue('testFile.sln');
+
+    const returnValue1 = core.getInput('searchFolder');
+    const returnValue2 = core.getInput('testAssembly');
+
+    const filesToUploadValue = ['testFile.zip'];
+    const rootDirectoryValue = 'C:\\Users\\Public\\';
+
+    const searchResults = {
+      filesToUpload: filesToUploadValue,
+      rootDirectory: rootDirectoryValue,
+    };
+
+    jest.mock('../src/search');
+    const findFilesToUploadMock = jest.spyOn(Search, 'findFilesToUpload');
+    when(findFilesToUploadMock).mockResolvedValue(searchResults);
+
+    // Act
+    const testAssembly = await getTestAssemblies();
+
+    // Assert
+    expect(testAssembly).not.toBeNull();
+    findFilesToUploadMock.mockReset();
+  });
+
+  it('test getTestAssemblies with empty searchResults', async () => {
+    // Arrange
+    const coreGetInputMock = jest.spyOn(core, 'getInput');
+
+    when(coreGetInputMock)
+      .calledWith('searchFolder')
+      .mockReturnValue('folderPath\\')
+      .calledWith('testAssembly')
+      .mockReturnValue('testFile.sln');
+
+    const returnValue1 = core.getInput('searchFolder');
+    const returnValue2 = core.getInput('testAssembly');
+
+    const filesToUploadValue = [''];
+    const rootDirectoryValue = 'C:\\Users\\Public\\';
+
+    const searchResults = {
+      filesToUpload: filesToUploadValue,
+      rootDirectory: rootDirectoryValue,
+    };
+
+    jest.mock('../src/search');
+    const findFilesToUploadMock = jest.spyOn(Search, 'findFilesToUpload');
+    when(findFilesToUploadMock).mockResolvedValue(searchResults);
+    const expectedResult: string[] = new Array('');
+
+    // Act
+    const testAssembly = await getTestAssemblies();
+
+    // Assert
+    expect(testAssembly).toEqual(expectedResult);
+    findFilesToUploadMock.mockReset();
+  });
+
+  it('getTestAssemblies throws exception', async () => {
+    // Arrange
+    const coreGetInputMock = jest.spyOn(core, 'getInput');
+
+    when(coreGetInputMock)
+      .calledWith('searchFolder')
+      .mockReturnValue('folderPath\\')
+      .calledWith('testAssembly')
+      .mockReturnValue('testFile.sln');
+
+    const returnValue1 = core.getInput('searchFolder');
+    const returnValue2 = core.getInput('testAssembly');
+
+    const filesToUploadValue = [''];
+    const rootDirectoryValue = 'C:\\Users\\Public\\';
+
+    const searchResults = {
+      filesToUpload: filesToUploadValue,
+      rootDirectory: rootDirectoryValue,
+    };
+
+    jest.mock('../src/search');
+    const findFilesToUploadMock = jest.spyOn(Search, 'findFilesToUpload');
+    when(findFilesToUploadMock).mockImplementation(() => {
+      throw new Error('Sample Error');
     });
+
+    const coresStFailedSpyOn = jest.spyOn(core, 'setFailed');
+
+    // Act
+    const testAssembly = await getTestAssemblies();
+    findFilesToUploadMock.mockRestore();
+
+    // Assert
+    expect(testAssembly.length).toEqual(0);
+    findFilesToUploadMock.mockReset();
+  });
+
+  it('test getInputs with valid values', async () => {
+    // Arrange
+    const coreGetInputMock = jest.spyOn(core, 'getInput');
+    const coreSetFailedMock = jest.spyOn(core, 'setFailed');
+    when(coreGetInputMock)
+      .calledWith(Inputs.Name)
+      .mockReturnValue('testFile.sln')
+      .calledWith(Inputs.IfNoFilesFound)
+      .mockReturnValue('warn')
+      .calledWith(Inputs.RetentionDays)
+      .mockReturnValue('30');
+
+    // Act
+    const results = getInputs();
+
+    // Assert
+    expect(results).not.toBeNull();
+  });
+
+  it('test getInputs with subFolderPath set', async () => {
+    // Arrange
+    const subFolderPathName = 'testSubFolderPath';
+    const expectedSearchPath = `TestResults${path.sep}${subFolderPathName}`;
+    const coreGetInputMock = jest.spyOn(core, 'getInput');
+    const coreSetFailedMock = jest.spyOn(core, 'setFailed');
     
-    afterEach(async () => {
-        jest.resetAllMocks
-    })
-    
-    it('test getArguments with no inputs', async () => {
-      jest.mock('@actions/core');
-      jest.spyOn(core, 'debug');
-      jest.spyOn(core, 'info');
-      jest.spyOn(core, 'getInput');
-
-      // Arrange
-      const coreGetInputMock = jest.spyOn(core, 'getInput');
-      when(coreGetInputMock)
-        .calledWith('testFiltercriteria')
-        .mockReturnValue('')
-        .calledWith('runSettingsFile')
-        .mockReturnValue('')
-        .calledWith('pathToCustomTestAdapters')
-        .mockReturnValue('')
-        .calledWith('runInParallel')
-        .mockReturnValue('false')
-        .calledWith('runTestsInIsolation')
-        .mockReturnValue('false')
-        .calledWith('codeCoverageEnabled')
-        .mockReturnValue('false')
-        .calledWith('platform')
-        .mockReturnValue('')
-        .calledWith('otherConsoleOptions')
-        .mockReturnValue('');
-
-      // Act
-      const args = getArguments();
-
-      // Assert
-      expect(args).not.toBeNull();
-      expect(args).toBe('/Logger:trx');
-    });
-
-    it('test getArguments with all expected inputs', async () => {
-      const expectedResult =
-        '/TestCaseFilter:testFilterCriteria /Settings:runSettingsFile /TestAdapterPath:pathToCustomTestAdapters /Parallel /InIsolation /EnableCodeCoverage /Platform:x64 /Logger:trx otherConsoleOptions';
-      jest.mock('@actions/core');
-      jest.spyOn(core, 'debug');
-      jest.spyOn(core, 'info');
-      jest.spyOn(core, 'getInput');
-
-      // Arrange
-      const coreGetInputMock = jest.spyOn(core, 'getInput');
-      when(coreGetInputMock)
-        .calledWith('testFiltercriteria')
-        .mockReturnValue('testFilterCriteria')
-        .calledWith('runSettingsFile')
-        .mockReturnValue('runSettingsFile')
-        .calledWith('pathToCustomTestAdapters')
-        .mockReturnValue('pathToCustomTestAdapters')
-        .calledWith('runInParallel')
-        .mockReturnValue('true')
-        .calledWith('runTestsInIsolation')
-        .mockReturnValue('true')
-        .calledWith('codeCoverageEnabled')
-        .mockReturnValue('true')
-        .calledWith('platform')
-        .mockReturnValue('x64')
-        .calledWith('otherConsoleOptions')
-        .mockReturnValue('otherConsoleOptions');
-
-      // Act
-      const args = getArguments();
-
-      // Assert
-      expect(args).not.toBeNull();
-      expect(args).toEqual(expectedResult);
-    });
-
-    it('test getArguments with customTestFile and disable logger inputs', async () => {
-      const expectedResult =
-        '/TestCaseFilter:testFilterCriteria /Settings:runSettingsFile /TestAdapterPath:pathToCustomTestAdapters /Parallel /InIsolation /EnableCodeCoverage /Platform:x64 otherConsoleOptions';
-      jest.mock('@actions/core');
-      jest.spyOn(core, 'debug');
-      jest.spyOn(core, 'info');
-      jest.spyOn(core, 'getInput');
-
-      // Arrange
-      const coreGetInputMock = jest.spyOn(core, 'getInput');
-      when(coreGetInputMock)
-        .calledWith('testFiltercriteria')
-        .mockReturnValue('testFilterCriteria')
-        .calledWith('runSettingsFile')
-        .mockReturnValue('runSettingsFile')
-        .calledWith('pathToCustomTestAdapters')
-        .mockReturnValue('pathToCustomTestAdapters')
-        .calledWith('runInParallel')
-        .mockReturnValue('true')
-        .calledWith('runTestsInIsolation')
-        .mockReturnValue('true')
-        .calledWith('codeCoverageEnabled')
-        .mockReturnValue('true')
-        .calledWith('platform')
-        .mockReturnValue('x64')
-        .calledWith('shouldSkipGeneratingTestLogFile')
-        .mockReturnValue('true')
-        .calledWith('otherConsoleOptions')
-        .mockReturnValue('otherConsoleOptions')
-        .calledWith('customTestLogFilename')
-        .mockReturnValue('test');
-
-      // Act
-      const args = getArguments();
-
-      // Assert
-      expect(args).not.toBeNull();
-      expect(args).toEqual(expectedResult);
-    });
-
-    it('test getArguments with customTestFile inputs', async () => {
-      const expectedResult =
-        '/TestCaseFilter:testFilterCriteria /Settings:runSettingsFile /TestAdapterPath:pathToCustomTestAdapters /Parallel /InIsolation /EnableCodeCoverage /Platform:x64 /Logger:trx;LogFileName=test.trx otherConsoleOptions';
-      jest.mock('@actions/core');
-      jest.spyOn(core, 'debug');
-      jest.spyOn(core, 'info');
-      jest.spyOn(core, 'getInput');
-
-      // Arrange
-      const coreGetInputMock = jest.spyOn(core, 'getInput');
-      when(coreGetInputMock)
-        .calledWith('testFiltercriteria')
-        .mockReturnValue('testFilterCriteria')
-        .calledWith('runSettingsFile')
-        .mockReturnValue('runSettingsFile')
-        .calledWith('pathToCustomTestAdapters')
-        .mockReturnValue('pathToCustomTestAdapters')
-        .calledWith('runInParallel')
-        .mockReturnValue('true')
-        .calledWith('runTestsInIsolation')
-        .mockReturnValue('true')
-        .calledWith('codeCoverageEnabled')
-        .mockReturnValue('true')
-        .calledWith('platform')
-        .mockReturnValue('x64')
-        .calledWith('otherConsoleOptions')
-        .mockReturnValue('otherConsoleOptions')
-        .calledWith('customTestLogFilename')
-        .mockReturnValue('test');
-
-      // Act
-      const args = getArguments();
-
-      // Assert
-      expect(args).not.toBeNull();
-      expect(args).toEqual(expectedResult);
-    });
-
-    it("test getTestAssemblies with valid searchResults", async () => {
-
-        // Arrange
-        const coreGetInputMock = jest.spyOn(core, 'getInput');
-
-        when(coreGetInputMock).calledWith('searchFolder').mockReturnValue('folderPath\\')
-        .calledWith('testAssembly').mockReturnValue('testFile.sln');
-
-        const returnValue1 = core.getInput('searchFolder');
-        const returnValue2 = core.getInput('testAssembly');
-
-        const filesToUploadValue = ["testFile.zip"];
-        const rootDirectoryValue = "C:\\Users\\Public\\";
-
-        const searchResults = {
-            filesToUpload: filesToUploadValue,
-            rootDirectory: rootDirectoryValue
-        };
-
-        jest.mock('../src/search');
-        const findFilesToUploadMock = jest.spyOn(Search, 'findFilesToUpload');
-        when(findFilesToUploadMock).mockResolvedValue(searchResults);
-
-        // Act
-        const testAssembly = await getTestAssemblies();
-
-        // Assert
-        expect(testAssembly).not.toBeNull()
-        findFilesToUploadMock.mockReset()
-    });
-
-    it("test getTestAssemblies with empty searchResults", async () => {
-
-        // Arrange
-        const coreGetInputMock = jest.spyOn(core, 'getInput');
-
-        when(coreGetInputMock).calledWith('searchFolder').mockReturnValue('folderPath\\')
-        .calledWith('testAssembly').mockReturnValue('testFile.sln');
-
-        const returnValue1 = core.getInput('searchFolder');
-        const returnValue2 = core.getInput('testAssembly');
-
-        const filesToUploadValue = [''];
-        const rootDirectoryValue = "C:\\Users\\Public\\";
-
-        const searchResults = {
-            filesToUpload: filesToUploadValue,
-            rootDirectory: rootDirectoryValue
-        };
-
-        jest.mock('../src/search');
-        const findFilesToUploadMock = jest.spyOn(Search, 'findFilesToUpload');
-        when(findFilesToUploadMock).mockResolvedValue(searchResults);
-        const expectedResult : string[] = new Array('');
-
-        // Act
-        const testAssembly = await getTestAssemblies();
-
-        // Assert
-        expect(testAssembly).toEqual(expectedResult)
-        findFilesToUploadMock.mockReset()
-    });
-
-    it('getTestAssemblies throws exception', async () => {
-
-        // Arrange
-        const coreGetInputMock = jest.spyOn(core, 'getInput');
-
-        when(coreGetInputMock).calledWith('searchFolder').mockReturnValue('folderPath\\')
-        .calledWith('testAssembly').mockReturnValue('testFile.sln');
-
-        const returnValue1 = core.getInput('searchFolder');
-        const returnValue2 = core.getInput('testAssembly');
-
-        const filesToUploadValue = [''];
-        const rootDirectoryValue = "C:\\Users\\Public\\";
-
-        const searchResults = {
-            filesToUpload: filesToUploadValue,
-            rootDirectory: rootDirectoryValue
-        };
-
-        jest.mock('../src/search');
-        const findFilesToUploadMock = jest.spyOn(Search, 'findFilesToUpload');
-        when(findFilesToUploadMock).mockImplementation(() => { throw new Error('Sample Error') });
-
-        const coresStFailedSpyOn = jest.spyOn(core, 'setFailed');
-
-        // Act
-        const testAssembly = await getTestAssemblies();
-        findFilesToUploadMock.mockRestore();
-        
-        // Assert
-        expect(testAssembly.length).toEqual(0)
-        findFilesToUploadMock.mockReset()
-    })
-
-    it('test getInputs with valid values', async () => {
-        // Arrange
-        const coreGetInputMock = jest.spyOn(core, 'getInput');
-        const coreSetFailedMock = jest.spyOn(core, 'setFailed');
-        when(coreGetInputMock)
-        .calledWith(Inputs.Name).mockReturnValue('testFile.sln')
-        .calledWith(Inputs.IfNoFilesFound).mockReturnValue('warn')
-        .calledWith(Inputs.RetentionDays).mockReturnValue('30');
-        
-        // Act
-        const results = getInputs();
-
-        // Assert
-        expect(results).not.toBeNull();
-
-    });
-
-    it('test getInputs with invalid RetentionDays', async () => {
-        // Arrange
-        const coreGetInputMock = jest.spyOn(core, 'getInput');
-        const coreSetFailedMock = jest.spyOn(core, 'setFailed');
-        when(coreGetInputMock)
-        .calledWith(Inputs.Name).mockReturnValue('testFile.sln')
-        .calledWith(Inputs.IfNoFilesFound).mockReturnValue('warn')
-        .calledWith(Inputs.RetentionDays).mockReturnValue('xx');
-        
-        // Act
-        const results = getInputs();
-
-        // Assert
-        expect(results).not.toBeNull();
-
-    });
-    
-    it('test getInputs with ifNoFilesFound values', async () => {
-        // Arrange
-        const coreGetInputMock = jest.spyOn(core, 'getInput');
-        const coreSetFailedMock = jest.spyOn(core, 'setFailed');
-        when(coreGetInputMock)
-        .calledWith(Inputs.Name).mockReturnValue('testFile.sln')
-        .calledWith(Inputs.IfNoFilesFound).mockReturnValue('ifNoFilesFound')
-        .calledWith(Inputs.RetentionDays).mockReturnValue('30');
-        
-        // Act
-        const results = getInputs();
-
-        // Assert
-        expect(results).not.toBeNull();
-
-    });
-
-    it('test findFilesToUpload with valid values', async () => {
-        // Arrange
-        jest.mock('@actions/glob')
-        const coreGetInputMock = jest.spyOn(core, 'getInput')
-        const globCreateMock = jest.spyOn(glob, 'create')
-        const fs = require('fs')
-        const mocked = fs as jest.Mocked<typeof fs>
-
-        jest.spyOn(fs, 'existsSync')
-        fs.existsSync.mockReturnValue(false)
-        const fsStatSyncMock = jest.spyOn(fs, 'statSync')
-        when(fsStatSyncMock).calledWith().mockReturnValue(true)
-
-        when(coreGetInputMock)
-        .calledWith(Inputs.Name).mockReturnValue('testFile.sln')
-        .calledWith(Inputs.IfNoFilesFound).mockReturnValue('warn')
-        .calledWith(Inputs.RetentionDays).mockReturnValue('30')
-        
-        const searchFolder = "C:\\Temp\\" as string;
-
-        const rawSearchResults = ["C:\\Temp\\Folder1","C:\\Temp\\Folder2","C:\\Temp\\Folder3"]
-        
-        const globOptions : glob.GlobOptions = 
-        {
-            followSymbolicLinks:false,
-            implicitDescendants: false,
-            omitBrokenSymbolicLinks: false
-        }
-
-        // var globCreationResultMock = when(globCreateMock).calledWith(searchFolder,globOptions).mockReturnThis
-        // var y = when(globCreationResultMock).calledWith().mockReturnValue(rawSearchResults)
-
-        // Act
-        const results = await Search.findFilesToUpload(searchFolder, globOptions)
-
-        // Assert
-        expect(results).not.toBeNull()
-
-    });
-
-    it('test findFilesToUpload with temp folder', async () => {
-        // Arrange
-        const searchFolder = "C:\\Temp\\branch1\\folder1\\vstest-functional-test.csproj C:\\Temp\\branch2\\folder2\\vstest-functional-test.csproj" as string
-        const globOptions : glob.GlobOptions = 
-        {
-            followSymbolicLinks:false,
-            implicitDescendants: false,
-            omitBrokenSymbolicLinks: false
-        }
-
-        // Act
-        const result = await Search.findFilesToUpload(searchFolder)
-
-        // Assert        
-        expect(result.filesToUpload).toBeNull
-    })
-    
-    it('test findFilesToUpload with non-existent folder', async () => {
-        // Arrange
-        const searchFolder = "" as string
-
-        // Act
-        const result = await Search.findFilesToUpload(searchFolder)
-
-        // Assert        
-        expect(result.filesToUpload).toBeNull
-    })
-
-
-    it('test findFilesToUpload with temp subfolder', async () => {
-        // Arrange
-        const searchFolder = "C:\\Temp\\*\\*" as string
-        const globOptions : glob.GlobOptions = 
-        {
-            followSymbolicLinks:false,
-            implicitDescendants: false,
-            omitBrokenSymbolicLinks: false
-        }
-
-        // Act
-        const result = await Search.findFilesToUpload(searchFolder, globOptions)
-
-        // Assert        
-        expect(result.filesToUpload).toBeNull
-    })
-
-    it('test findFilesToUpload with temp folder without glob options', async () => {
-        // Arrange
-        const searchFolder = "C:\\Temp\\folder1" as string
-        const globOptions : glob.GlobOptions = 
-        {
-            followSymbolicLinks:false,
-            implicitDescendants: false,
-            omitBrokenSymbolicLinks: false
-        }
-
-        // Act
-        const result = await Search.findFilesToUpload(searchFolder)
-
-        // Assert        
-        expect(result.filesToUpload).toBeNull
-    })
-
-    it('test findFilesToUpload with zip file', async () => {
-        // Arrange
-        const searchFolder = "C:\\Temp\\testCase.zip" as string
-        const globOptions : glob.GlobOptions = 
-        {
-            followSymbolicLinks:false,
-            implicitDescendants: false,
-            omitBrokenSymbolicLinks: false
-        }
-
-        // Act
-        const result = await Search.findFilesToUpload(searchFolder, globOptions)
-
-        // Assert        
-        expect(result.filesToUpload).toBeNull
-    })
-
-    it('test uploadArtifact', async () => {
-        jest.mock('@actions/core');
-        jest.spyOn(core,'debug');
-        jest.spyOn(core, 'info');
-        jest.spyOn(core, 'getInput');
-
-        // Arrange
-        const coreGetInputMock = jest.spyOn(core, 'getInput');
-        when(coreGetInputMock).calledWith('testFiltercriteria').mockReturnValue('')
-        .calledWith('runSettingsFile').mockReturnValue('')
-        .calledWith('pathToCustomTestAdapters').mockReturnValue('')
-        .calledWith('runInParallel').mockReturnValue('false')
-        .calledWith('runTestsInIsolation').mockReturnValue('false')
-        .calledWith('codeCoverageEnabled').mockReturnValue('false')
-        .calledWith('platform').mockReturnValue('')
-        .calledWith('otherConsoleOptions').mockReturnValue('');
-    
-        // Act
-        const args = uploadArtifact();
-    
-        // Assert
-        expect(args).not.toBeNull();
-    
-    });
-
-    it("test uploadArtifact with valid searchResults", async () => {
-
-        // Arrange
-        const coreGetInputMock = jest.spyOn(core, 'getInput');
-
-        when(coreGetInputMock).calledWith('searchFolder').mockReturnValue('folderPath\\')
-        .calledWith('testAssembly').mockReturnValue('testFile.sln');
-
-        const returnValue1 = core.getInput('searchFolder');
-        const returnValue2 = core.getInput('testAssembly');
-
-        const filesToUploadValue = ["testFile.zip"];
-        const rootDirectoryValue = "C:\\Users\\Public\\";
-
-        const searchResults = {
-            filesToUpload: filesToUploadValue,
-            rootDirectory: rootDirectoryValue
-        };
-
-        jest.mock('../src/search');
-        const findFilesToUploadMock = jest.spyOn(Search, 'findFilesToUpload');
-        when(findFilesToUploadMock).mockResolvedValue(searchResults);
-
-        // Act
-        const testAssembly = await uploadArtifact();
-
-        // Assert
-        expect(testAssembly).not.toBeNull()
-        findFilesToUploadMock.mockReset()
-    });
-
-
-    // test('test findFilesToUpload with empty searchFolder', async () => {
-    //     var searchFolder = "" as string
-    
-    //     let result = await Search.findFilesToUpload(searchFolder)
-    //     expect(result.filesToUpload).toBeNull
-    // })
-    
-    // test('test findFilesToUpload', async () => {
-    //     var searchFolder = process.env['RUNNER_SEARCH'] as string
-
-    //     const expectedResult : string[] = new Array('');
-
-    //     // jest.mock('fs');
-    //     // jest.spyOn(stat.prototype, 'stats');
-    
-    //     let result = await Search.findFilesToUpload(searchFolder)
-    //     expect(result.filesToUpload).toEqual(expectedResult);
-    // })
-    
-    // test('vstest', async () => {
-    //     await run()
-    // })
+    when(coreGetInputMock)
+      .calledWith(Inputs.Name)
+      .mockReturnValue('testFile.sln')
+      .calledWith(Inputs.IfNoFilesFound)
+      .mockReturnValue('warn')
+      .calledWith(Inputs.RetentionDays)
+      .mockReturnValue('30')
+      .calledWith('resultLogsSubFolderPath')
+      .mockReturnValue(subFolderPathName);
+
+    // Act
+    const results = getInputs();
+
+    // Assert
+    expect(results).not.toBeNull();
+    expect(results.searchPath).toStrictEqual(expectedSearchPath);
+  });
+
+  it('test getInputs with subFolderPath not set', async () => {
+    // Arrange
+    const expectedSearchPath = `TestResults`;
+    const coreGetInputMock = jest.spyOn(core, 'getInput');
+    const coreSetFailedMock = jest.spyOn(core, 'setFailed');
+
+    when(coreGetInputMock)
+      .calledWith(Inputs.Name)
+      .mockReturnValue('testFile.sln')
+      .calledWith(Inputs.IfNoFilesFound)
+      .mockReturnValue('warn')
+      .calledWith(Inputs.RetentionDays)
+      .mockReturnValue('30');
+
+    // Act
+    const results = getInputs();
+
+    // Assert
+    expect(results).not.toBeNull();
+    expect(results.searchPath).toStrictEqual(expectedSearchPath);
+  });
+
+  it('test getInputs with invalid RetentionDays', async () => {
+    // Arrange
+    const coreGetInputMock = jest.spyOn(core, 'getInput');
+    const coreSetFailedMock = jest.spyOn(core, 'setFailed');
+    when(coreGetInputMock)
+      .calledWith(Inputs.Name)
+      .mockReturnValue('testFile.sln')
+      .calledWith(Inputs.IfNoFilesFound)
+      .mockReturnValue('warn')
+      .calledWith(Inputs.RetentionDays)
+      .mockReturnValue('xx');
+
+    // Act
+    const results = getInputs();
+
+    // Assert
+    expect(results).not.toBeNull();
+  });
+
+  it('test getInputs with ifNoFilesFound values', async () => {
+    // Arrange
+    const coreGetInputMock = jest.spyOn(core, 'getInput');
+    const coreSetFailedMock = jest.spyOn(core, 'setFailed');
+    when(coreGetInputMock)
+      .calledWith(Inputs.Name)
+      .mockReturnValue('testFile.sln')
+      .calledWith(Inputs.IfNoFilesFound)
+      .mockReturnValue('ifNoFilesFound')
+      .calledWith(Inputs.RetentionDays)
+      .mockReturnValue('30');
+
+    // Act
+    const results = getInputs();
+
+    // Assert
+    expect(results).not.toBeNull();
+  });
+
+  it('test findFilesToUpload with valid values', async () => {
+    // Arrange
+    jest.mock('@actions/glob');
+    const coreGetInputMock = jest.spyOn(core, 'getInput');
+    const globCreateMock = jest.spyOn(glob, 'create');
+    const fs = require('fs');
+    const mocked = fs as jest.Mocked<typeof fs>;
+
+    jest.spyOn(fs, 'existsSync');
+    fs.existsSync.mockReturnValue(false);
+    const fsStatSyncMock = jest.spyOn(fs, 'statSync');
+    when(fsStatSyncMock).calledWith().mockReturnValue(true);
+
+    when(coreGetInputMock)
+      .calledWith(Inputs.Name)
+      .mockReturnValue('testFile.sln')
+      .calledWith(Inputs.IfNoFilesFound)
+      .mockReturnValue('warn')
+      .calledWith(Inputs.RetentionDays)
+      .mockReturnValue('30');
+
+    const searchFolder = 'C:\\Temp\\' as string;
+
+    const rawSearchResults = ['C:\\Temp\\Folder1', 'C:\\Temp\\Folder2', 'C:\\Temp\\Folder3'];
+
+    const globOptions: glob.GlobOptions = {
+      followSymbolicLinks: false,
+      implicitDescendants: false,
+      omitBrokenSymbolicLinks: false,
+    };
+
+    // var globCreationResultMock = when(globCreateMock).calledWith(searchFolder,globOptions).mockReturnThis
+    // var y = when(globCreationResultMock).calledWith().mockReturnValue(rawSearchResults)
+
+    // Act
+    const results = await Search.findFilesToUpload(searchFolder, globOptions);
+
+    // Assert
+    expect(results).not.toBeNull();
+  });
+
+  it('test findFilesToUpload with temp folder', async () => {
+    // Arrange
+    const searchFolder =
+      'C:\\Temp\\branch1\\folder1\\vstest-functional-test.csproj C:\\Temp\\branch2\\folder2\\vstest-functional-test.csproj' as string;
+    const globOptions: glob.GlobOptions = {
+      followSymbolicLinks: false,
+      implicitDescendants: false,
+      omitBrokenSymbolicLinks: false,
+    };
+
+    // Act
+    const result = await Search.findFilesToUpload(searchFolder);
+
+    // Assert
+    expect(result.filesToUpload).toBeNull;
+  });
+
+  it('test findFilesToUpload with non-existent folder', async () => {
+    // Arrange
+    const searchFolder = '' as string;
+
+    // Act
+    const result = await Search.findFilesToUpload(searchFolder);
+
+    // Assert
+    expect(result.filesToUpload).toBeNull;
+  });
+
+  it('test findFilesToUpload with temp subfolder', async () => {
+    // Arrange
+    const searchFolder = 'C:\\Temp\\*\\*' as string;
+    const globOptions: glob.GlobOptions = {
+      followSymbolicLinks: false,
+      implicitDescendants: false,
+      omitBrokenSymbolicLinks: false,
+    };
+
+    // Act
+    const result = await Search.findFilesToUpload(searchFolder, globOptions);
+
+    // Assert
+    expect(result.filesToUpload).toBeNull;
+  });
+
+  it('test findFilesToUpload with temp folder without glob options', async () => {
+    // Arrange
+    const searchFolder = 'C:\\Temp\\folder1' as string;
+    const globOptions: glob.GlobOptions = {
+      followSymbolicLinks: false,
+      implicitDescendants: false,
+      omitBrokenSymbolicLinks: false,
+    };
+
+    // Act
+    const result = await Search.findFilesToUpload(searchFolder);
+
+    // Assert
+    expect(result.filesToUpload).toBeNull;
+  });
+
+  it('test findFilesToUpload with zip file', async () => {
+    // Arrange
+    const searchFolder = 'C:\\Temp\\testCase.zip' as string;
+    const globOptions: glob.GlobOptions = {
+      followSymbolicLinks: false,
+      implicitDescendants: false,
+      omitBrokenSymbolicLinks: false,
+    };
+
+    // Act
+    const result = await Search.findFilesToUpload(searchFolder, globOptions);
+
+    // Assert
+    expect(result.filesToUpload).toBeNull;
+  });
+
+  it('test uploadArtifact', async () => {
+    jest.mock('@actions/core');
+    jest.spyOn(core, 'debug');
+    jest.spyOn(core, 'info');
+    jest.spyOn(core, 'getInput');
+
+    // Arrange
+    const coreGetInputMock = jest.spyOn(core, 'getInput');
+    when(coreGetInputMock)
+      .calledWith('testFiltercriteria')
+      .mockReturnValue('')
+      .calledWith('runSettingsFile')
+      .mockReturnValue('')
+      .calledWith('pathToCustomTestAdapters')
+      .mockReturnValue('')
+      .calledWith('runInParallel')
+      .mockReturnValue('false')
+      .calledWith('runTestsInIsolation')
+      .mockReturnValue('false')
+      .calledWith('codeCoverageEnabled')
+      .mockReturnValue('false')
+      .calledWith('platform')
+      .mockReturnValue('')
+      .calledWith('otherConsoleOptions')
+      .mockReturnValue('');
+
+    // Act
+    const args = uploadArtifact();
+
+    // Assert
+    expect(args).not.toBeNull();
+  });
+
+  it('test uploadArtifact with valid searchResults', async () => {
+    // Arrange
+    const coreGetInputMock = jest.spyOn(core, 'getInput');
+
+    when(coreGetInputMock)
+      .calledWith('searchFolder')
+      .mockReturnValue('folderPath\\')
+      .calledWith('testAssembly')
+      .mockReturnValue('testFile.sln');
+
+    const returnValue1 = core.getInput('searchFolder');
+    const returnValue2 = core.getInput('testAssembly');
+
+    const filesToUploadValue = ['testFile.zip'];
+    const rootDirectoryValue = 'C:\\Users\\Public\\';
+
+    const searchResults = {
+      filesToUpload: filesToUploadValue,
+      rootDirectory: rootDirectoryValue,
+    };
+
+    jest.mock('../src/search');
+    const findFilesToUploadMock = jest.spyOn(Search, 'findFilesToUpload');
+    when(findFilesToUploadMock).mockResolvedValue(searchResults);
+
+    // Act
+    const testAssembly = await uploadArtifact();
+
+    // Assert
+    expect(testAssembly).not.toBeNull();
+    findFilesToUploadMock.mockReset();
+  });
+
+  // test('test findFilesToUpload with empty searchFolder', async () => {
+  //     var searchFolder = "" as string
+
+  //     let result = await Search.findFilesToUpload(searchFolder)
+  //     expect(result.filesToUpload).toBeNull
+  // })
+
+  // test('test findFilesToUpload', async () => {
+  //     var searchFolder = process.env['RUNNER_SEARCH'] as string
+
+  //     const expectedResult : string[] = new Array('');
+
+  //     // jest.mock('fs');
+  //     // jest.spyOn(stat.prototype, 'stats');
+
+  //     let result = await Search.findFilesToUpload(searchFolder)
+  //     expect(result.filesToUpload).toEqual(expectedResult);
+  // })
+
+  // test('vstest', async () => {
+  //     await run()
+  // })
 });
 
